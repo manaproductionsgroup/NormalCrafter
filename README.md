@@ -1,4 +1,7 @@
 ## ___***NormalCrafter: Learning Temporally Consistent Video Normal from Video Diffusion Priors***___
+
+## this is a slightly modified version to fit with Mana Productions needs (the changes are extracting the unique frames from vidoe output with the frame number as filename)
+
 <div align="center">
 <br>
 

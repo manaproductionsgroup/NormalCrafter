@@ -5,6 +5,9 @@ import PIL.Image
 import matplotlib.cm as cm
 import mediapy
 import torch
+import cv2
+import os
+from skimage.metrics import structural_similarity as ssim
 from decord import VideoReader, cpu
 
 
@@ -45,7 +48,7 @@ def save_video(
     video_frames: Union[List[np.ndarray], List[PIL.Image.Image]],
     output_video_path: str = None,
     fps: int = 10,
-    crf: int = 18,
+    crf: int = 0, #lossless
 ) -> str:
     if output_video_path is None:
         output_video_path = tempfile.NamedTemporaryFile(suffix=".mp4").name
@@ -57,6 +60,55 @@ def save_video(
         video_frames = [np.array(frame) for frame in video_frames]
     mediapy.write_video(output_video_path, video_frames, fps=fps, crf=crf)
     return output_video_path
+
+def extract_unique_frames(video_path, output_folder, threshold=0.95):
+    """
+    Extracts unique frames from a video using SSIM similarity.
+
+    threshold = 1.0 (very strict, only identical frames ignored)
+    threshold = 0.95 (recommended)
+    threshold = 0.80 (more sensitive)
+    """
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
+    cap = cv2.VideoCapture(video_path)
+    if not cap.isOpened():
+        raise ValueError("Cannot open video.")
+
+    prev_gray = None
+    frame_index = 0
+    unique_count = 0
+
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+        if prev_gray is None:
+            # First frame is always unique
+            cv2.imwrite(f"{output_folder}/{frame_index:04d}.png", frame)
+            prev_gray = gray
+            frame_index += 1
+            unique_count += 1
+            continue
+
+        # Compute SSIM between this frame and previous unique frame
+        score, _ = ssim(gray, prev_gray, full=True)
+
+        if score < threshold:
+            # Frame is different enough → save it
+            cv2.imwrite(f"{output_folder}/{frame_index:04d}.png", frame)
+            prev_gray = gray
+            unique_count += 1
+
+        frame_index += 1
+
+    cap.release()
+
+    print(f"Extracted {unique_count} unique frames.")
 
 def vis_sequence_normal(normals: np.ndarray):
     normals = normals.clip(-1., 1.)

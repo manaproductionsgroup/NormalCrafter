@@ -15,7 +15,7 @@ import uuid
 import random
 from huggingface_hub import hf_hub_download
 
-from normalcrafter.utils import read_video_frames, vis_sequence_normal, save_video
+from normalcrafter.utils import read_video_frames, vis_sequence_normal, save_video, extract_unique_frames
 
 examples = [
     ["examples/example_01.mp4", 1024, -1, -1],
@@ -87,6 +87,7 @@ def infer_depth(
         np.savez_compressed(save_path + ".npz", normal=res)
     save_video(vis, save_path + "_vis.mp4", fps=target_fps)
     save_video(frames, save_path + "_input.mp4", fps=target_fps)
+    extract_unique_frames(save_path + "_vis.mp4", f"./frames_output/{os.path.basename(save_path)}")
 
     # clear the cache for the next video
     gc.collect()

@@ -111,3 +111,4 @@ wcwidth==0.2.13
 websockets==15.0.1
 xformers==0.0.20
 zipp==3.21.0
+scikit-image

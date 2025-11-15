@@ -9,7 +9,7 @@ from fire import Fire
 
 from normalcrafter.normal_crafter_ppl import NormalCrafterPipeline
 from normalcrafter.unet import DiffusersUNetSpatioTemporalConditionModelNormalCrafter
-from normalcrafter.utils import vis_sequence_normal, save_video, read_video_frames
+from normalcrafter.utils import vis_sequence_normal, save_video, read_video_frames, extract_unique_frames
 
 
 class DepthCrafterDemo:
@@ -97,6 +97,7 @@ class DepthCrafterDemo:
         os.makedirs(os.path.dirname(save_path), exist_ok=True)
         save_video(vis, save_path + "_vis.mp4", fps=target_fps)
         save_video(frames, save_path + "_input.mp4", fps=target_fps)
+        extract_unique_frames(save_path + "_vis.mp4", f"./frames_output/{os.path.basename(save_path)}")
         if save_npz:
             np.savez_compressed(save_path + ".npz", depth=res)
 
